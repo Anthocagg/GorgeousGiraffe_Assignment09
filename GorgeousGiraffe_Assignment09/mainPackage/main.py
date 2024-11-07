@@ -1,81 +1,60 @@
 import random
-from connectPackage.connect import*  # Import everything from connectPackage, including conn
+import pyodbc
+from connectPackage.connect import *
 
-# Check if the connection was successful
-if conn:
+if __name__ == "__main__":
+    """
+    This package attempts to connect to the DB and uses queries and its data to make a sentence of it
+    """
     try:
-        # Create a cursor object
-        cursor = conn.cursor()
-
-        # Step 1: Submit the query and store the results in a data structure
-        query = "SELECT ProductID, [UPC-A], Description, ManufacturerID, BrandID FROM tProduct"
-        cursor.execute(query)
-
-        print("Query executed successfully. Fetching data...")
-
-        # Fetch all results and store them in a list of dictionaries
-        products = []
-        for row in cursor.fetchall():
-            product = {
-                'ProductID': row.ProductID,
-                'UPC': row[1],  # Corresponds to [UPC-A]
-                'Description': row.Description,
-                'ManufacturerID': row.ManufacturerID,
-                'BrandID': row.BrandID
-            }
-            products.append(product)
-
-        print(f"Retrieved {len(products)} products.")
-
-        # Close the cursor after fetching data
-        cursor.close()
-
-        # Step 2: Randomly select one row from the data structure
-        selected_product = random.choice(products)
-
-        # Store selected values in variables
-        selected_description = selected_product['Description']
-        selected_product_id = selected_product['ProductID']
-        selected_manufacturer_id = selected_product['ManufacturerID']
-        selected_brand_id = selected_product['BrandID']
-
-        print(f"Selected Product ID: {selected_product_id}")
-        print(f"Description: {selected_description}")
-        print(f"Manufacturer ID: {selected_manufacturer_id}")
-        print(f"Brand ID: {selected_brand_id}")
-
-        # Step 3 & 4: Use ManufacturerID to get the manufacturer name
-        manufacturer_query = "SELECT Manufacturer FROM tManufacturer WHERE ManufacturerID = ?"
-        cursor = conn.cursor()
-        cursor.execute(manufacturer_query, selected_manufacturer_id)
-        manufacturer = cursor.fetchone()
-        manufacturer_name = manufacturer[0] if manufacturer else "Unknown Manufacturer"
-        print(f"Manufacturer Name: {manufacturer_name}")
-
-        # Step 5: Use BrandID to get the brand name
-        brand_query = "SELECT Brand FROM tBrand WHERE BrandID = ?"
-        cursor.execute(brand_query, selected_brand_id)
-        brand = cursor.fetchone()
-        brand_name = brand[0] if brand else "Unknown Brand"
-        print(f"Brand Name: {brand_name}")
-
-        # Step 6: Query for number of items sold using ProductID
-        items_sold_query = """
-            SELECT TOP (100) PERCENT SUM(dbo.tTransactionDetail.QtyOfProduct) AS NumberOfItemsSold
-            FROM dbo.tTransactionDetail
-            INNER JOIN dbo.tTransaction ON dbo.tTransactionDetail.TransactionID = dbo.tTransaction.TransactionID
-            WHERE (dbo.tTransaction.TransactionTypeID = 1) AND (dbo.tTransactionDetail.ProductID = ?)
-        """
-        cursor.execute(items_sold_query, selected_product_id)
-        items_sold = cursor.fetchone()
-        number_of_items_sold = items_sold[0] if items_sold else 0
-        print(f"Number of Items Sold: {number_of_items_sold}")
-
+        cursor = DatabaseConnection.connect_to_database()
+   
     except Exception as e:
-        print("An error occurred:", e)
-    finally:
-        # Ensure the connection is closed
-        conn.close()
-        print("Connection closed.")
-else:
-    print("Failed to establish a connection.")
+        print("Error accessing database")
+        print(e)
+        exit()
+       
+    
+# List to store product data
+product_data_list = []
+product_query = "SELECT ProductID, [UPC-A ], Description, ManufacturerID, BrandID FROM tProduct"
+product_results = cursor.execute(product_query)
+
+# Appending rows to the list
+for record in product_results.fetchall():
+    product_data_list.append(record)
+
+# Randomly select a row from the data list
+random_product_row = random.choice(product_data_list)
+
+# Extract specific details from the selected row
+prod_id = random_product_row[0]
+prod_description = random_product_row[2]
+mfr_id = random_product_row[3]
+brand_id = random_product_row[4]
+
+# Query for the manufacturer name using the manufacturer ID
+mfr_query = "SELECT Manufacturer FROM tManufacturer WHERE ManufacturerID = " + str(mfr_id)
+mfr_result = cursor.execute(mfr_query)
+for row in mfr_result.fetchone():
+    mfr_name = row
+
+# Query for the brand name using the brand ID
+brand_query = "SELECT Brand FROM tBrand WHERE BrandID = " + str(brand_id)
+brand_result = cursor.execute(brand_query)
+for row in brand_result.fetchone():
+    brand_name = row
+
+# Query for the total number of items sold using the product ID
+sales_query = ("SELECT TOP (100) PERCENT SUM(dbo.tTransactionDetail.QtyOfProduct) AS TotalItemsSold "
+               "FROM dbo.tTransactionDetail "
+               "INNER JOIN dbo.tTransaction ON dbo.tTransactionDetail.TransactionID = dbo.tTransaction.TransactionID "
+               "WHERE (dbo.tTransaction.TransactionTypeID = 1) AND (dbo.tTransactionDetail.ProductID = " + str(prod_id) + ")")
+sales_result = cursor.execute(sales_query)
+for row in sales_result.fetchone():
+    items_sold = row
+
+# Construct and print the final sentence
+summary_sentence = (f"The product '{brand_name}' is manufactured by '{mfr_name}', has a description of '{prod_description}', "
+                    f"and at this grocery store location, {items_sold} items have been sold.")
+print(summary_sentence)

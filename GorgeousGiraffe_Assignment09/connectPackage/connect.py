@@ -1,16 +1,42 @@
+# Connect.py
 import pyodbc
 
-# Establish the connection and make it a global object
-try:
-    conn = pyodbc.connect(
-        'Driver={SQL Server};'
-        'Server=lcb-sql.uccob.uc.edu\\nicholdw;'  # Make sure this is correct
-        'Database=IS4010;'
-        'UID=IS4010Login;'
-        'PWD=P@ssword2;'
-    )
-    print("Connection established successfully.")
-except Exception as e:
-    print("An error occurred while trying to connect to the database:", e)
-    conn = None  # Set conn to None if the connection fails
 
+class DatabaseConnection(object):
+    """
+    Establishes a connection to a database
+    """
+    def __init__(self, conn):
+        """
+        Constructor
+        @param conn Connection: Connection object to connect to database
+        """
+        self.__conn = conn
+       
+    def connect_to_database():
+        """
+        Connect to the database
+        @return Connection Object: The open connection, or None on error
+        """
+        try:
+            conn = pyodbc.connect('Driver={SQL Server};'
+                          'Server=lcb-sql.uccob.uc.edu\\nicholdw;'
+                          'Database=GroceryStoreSimulator;'
+                          'uid=IS4010Login;'
+                          'pwd=P@ssword2;')
+        except:
+            conn = None
+       
+        return conn
+       
+    def __str__(self):
+        """
+        @return String: A human-readable basic representation of the current object.
+        """
+        return "model: " + self.__conn
+
+    def __repr__(self):
+        """
+        @return String: A string containing code that can be executed to create a copy of the current object
+        """
+        return f"Connection('{self.__conn}')"
