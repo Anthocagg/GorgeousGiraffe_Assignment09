@@ -14,47 +14,33 @@ if __name__ == "__main__":
         print(e)
         exit()
        
-    
-# List to store product data
-product_data_list = []
-product_query = "SELECT ProductID, [UPC-A ], Description, ManufacturerID, BrandID FROM tProduct"
-product_results = cursor.execute(product_query)
+    emptyListForData = []
+    query_string = "SELECT ProductID, [UPC-A ], Description, ManufacturerID, BrandID  FROM tProduct"
+    results = cursor.execute(query_string)
+    for row in results.fetchall():
+        emptyListForData.append(row)
+    random_row_from_list = random.choice(emptyListForData)
+   
+    productID = random_row_from_list[0]
+    description = random_row_from_list[2]
+    manufacturerID = random_row_from_list[3]
+    brandID = random_row_from_list[4]    
 
-# Appending rows to the list
-for record in product_results.fetchall():
-    product_data_list.append(record)
+    manufacturer_query_string = "SELECT Manufacturer FROM tManufacturer WHERE ManufacturerID = " + str(manufacturerID)
+    Manufacturer = cursor.execute(manufacturer_query_string)
+    for row in Manufacturer.fetchone():
+         Manufacturer = row
+   
+    brand_query_string = "SELECT Brand FROM tBrand WHERE BrandID = " + str(brandID)
+    Brand = cursor.execute(brand_query_string)
+    for row in Brand.fetchone():
+        Brand = row
 
-# Randomly select a row from the data list
-random_product_row = random.choice(product_data_list)
 
-# Extract specific details from the selected row
-prod_id = random_product_row[0]
-prod_description = random_product_row[2]
-mfr_id = random_product_row[3]
-brand_id = random_product_row[4]
+    number_sold_query_string = "SELECT TOP (100) PERCENT SUM(dbo.tTransactionDetail.QtyOfProduct) AS NumberOfItemsSold FROM dbo.tTransactionDetail INNER JOIN dbo.tTransaction ON dbo.tTransactionDetail.TransactionID = dbo.tTransaction.TransactionID WHERE (dbo.tTransaction.TransactionTypeID = 1) AND (dbo.tTransactionDetail.ProductID = " + str(productID) +")"
+    number_sold = cursor.execute(number_sold_query_string)
+    for row in number_sold.fetchone():
+        number_sold = row
 
-# Query for the manufacturer name using the manufacturer ID
-mfr_query = "SELECT Manufacturer FROM tManufacturer WHERE ManufacturerID = " + str(mfr_id)
-mfr_result = cursor.execute(mfr_query)
-for row in mfr_result.fetchone():
-    mfr_name = row
-
-# Query for the brand name using the brand ID
-brand_query = "SELECT Brand FROM tBrand WHERE BrandID = " + str(brand_id)
-brand_result = cursor.execute(brand_query)
-for row in brand_result.fetchone():
-    brand_name = row
-
-# Query for the total number of items sold using the product ID
-sales_query = ("SELECT TOP (100) PERCENT SUM(dbo.tTransactionDetail.QtyOfProduct) AS TotalItemsSold "
-               "FROM dbo.tTransactionDetail "
-               "INNER JOIN dbo.tTransaction ON dbo.tTransactionDetail.TransactionID = dbo.tTransaction.TransactionID "
-               "WHERE (dbo.tTransaction.TransactionTypeID = 1) AND (dbo.tTransactionDetail.ProductID = " + str(prod_id) + ")")
-sales_result = cursor.execute(sales_query)
-for row in sales_result.fetchone():
-    items_sold = row
-
-# Construct and print the final sentence
-summary_sentence = (f"The product '{brand_name}' is manufactured by '{mfr_name}', has a description of '{prod_description}', "
-                    f"and at this grocery store location, {items_sold} items have been sold.")
-print(summary_sentence)
+    Sentence = "The product " + str(Brand) + " is manufactured by " + str(Manufacturer) + ", has a description of " + str(description) + " and at this grocery store location " + str(number_sold) + " have sold."
+    print(Sentence)
