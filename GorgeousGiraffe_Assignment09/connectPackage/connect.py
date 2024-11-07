@@ -4,7 +4,7 @@ import pyodbc
 
 class DatabaseConnection(object):
     """
-    Establishes a connection to a database
+    Establishes a connection to the UC database
     """
     def __init__(self, conn):
         """
@@ -31,13 +31,13 @@ class DatabaseConnection(object):
        
     def __str__(self):
         """
-        @return String: A human-readable basic representation of the current object.
+        @return String: A readable basic representation of the current object.
         """
         return "model: " + self.__conn
 
     def __repr__(self):
         """
-        @return String: A string containing code that can be executed to create a copy of the current object
+        @return String: A string that can be executed to create a copy of the current data
         """
         return f"Connection('{self.__conn}')"
 
