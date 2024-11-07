@@ -1,3 +1,18 @@
+# Name: Anthony Caggiano, Connor MacFarland, JD Poindexter
+# email: caggiaaj@mail.uc.edu, poindejd@mail.uc.edu, macfarcm@mail.uc.edu
+# Assignment Number: Assignment 09  
+# Due Date:   11/07/24
+# Course #/Section:  IS4010
+# Semester/Year:  F4
+# Brief Description of the assignment: In this assignment we took a dataset and figured out how to manipualte it and get infomation
+
+# Brief Description of what this module does. In this module we learned how to import datasets and how to use them
+# Citations: https://www.datacamp.com/tutorial/tutorial-how-to-execute-sql-queries-in-r-and-python
+#https://www.w3schools.com/python/python_mysql_select.asp
+#https://stackoverflow.com/questions/44149394/select-a-random-row-from-the-table-using-python
+
+# Anything else that's relevant:
+
 import random
 import pyodbc
 from connectPackage.connect import *
